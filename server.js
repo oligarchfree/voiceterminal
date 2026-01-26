@@ -22,7 +22,7 @@ const app = express();
 // ====================
 
 // Serve your static files (index.html)
-app.use(express.static("."));
+app.use(express.static("src"));
 
 // Simple proxy: browser calls /hubitat/<anything>, server forwards to Hubitat Maker API
 app.get(/^\/hubitat\/(.*)/, async (req, res) => {
