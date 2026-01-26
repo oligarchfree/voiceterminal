@@ -1,0 +1,79 @@
+// tokenizer.js
+(() => {
+	"use strict";
+
+	const VALID_STATES = new Set(["on", "off"]);
+  const VALID_DEVICES = new Set(["light", "fan", "switch", "dimmer", "rgb_light"]);
+
+	//------
+	function normSpace(s) {
+		return String(s || "").replace(/\s+/g, " ").trim();
+	}
+
+	//------
+	function splitTokens(text) {
+		const t = normSpace(text);
+		if (!t) return [];
+		return t.split(" ").filter(Boolean);
+	}
+
+	//------
+	function tokenizeCommand(fusedText) {
+		const text = normSpace(fusedText);
+		if (!text) return null;
+
+		const tokens = splitTokens(text);
+		if (tokens.length < 2) return null;
+
+		// Find state anywhere in the tokens
+		let stateIndex = -1;
+		let state = null;
+		for (let i = 0; i < tokens.length; i++) {
+			if (VALID_STATES.has(tokens[i])) {
+				stateIndex = i;
+				state = tokens[i];
+				break;
+			}
+		}
+
+		if (stateIndex === -1) return null;
+
+		// Find device type anywhere in the tokens
+		let deviceIndex = -1;
+		let noun = null;
+		for (let i = 0; i < tokens.length; i++) {
+			if (i !== stateIndex && VALID_DEVICES.has(tokens[i])) {
+				deviceIndex = i;
+				noun = tokens[i];
+				break;
+			}
+		}
+
+		// Get all tokens except state and device type
+		const targetTokens = tokens.filter((_, i) => i !== stateIndex && i !== deviceIndex);
+
+		// Case 1: "light on" => target="light", noun=null (no separate target location)
+		if (targetTokens.length === 0 && noun) {
+			return { target: noun, noun: null, state };
+		}
+
+		// Case 2: "kitchen light on" => target="kitchen", noun="light"
+		if (targetTokens.length > 0 && noun) {
+			const target = targetTokens.join(" ");
+			return { target, noun, state };
+		}
+
+		// Case 3: No valid device found, use all remaining tokens as target
+		if (targetTokens.length > 0 && !noun) {
+			return { target: targetTokens.join(" "), noun: null, state };
+		}
+
+		return null;
+	}
+
+	window.Tokenizer = {
+		tokenizeCommand
+	};
+
+	console.log("[Tokenizer] loaded");
+})();

@@ -1,0 +1,18 @@
+first, let's explain how I want you to operate:
+
+1.) I don't want you to provide any suggestions
+2.) I want you to respond as succinctly as possible
+3.) dont refactor large amounts of code if you're confused about why something isn't working. Stop and ask me for direction
+4.) if you're unclear about my instructions, ask me for clarity
+
+second, here is your code style:
+
+1.) Minimalistic. 
+2.) Easy to read and understand. 
+3.) Prioritize clarity and simplicity.
+4.) Above EVERY function, add "//------" for visual delineation
+5.) ALWAYS do leading indents with TABS (not spaces)
+
+third, on startup, ALWAYS
+1.) review all js / html files for context
+2.) provide a BRIEF synopsis of what they do

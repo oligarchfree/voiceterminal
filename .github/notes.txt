@@ -1,0 +1,44 @@
+TODO:
+
+
+- add levenshiten function for searching...
+    - device ids 
+    - states
+
+XXX - create feedback sounds
+    XXX - accept (high)
+    XXX - reject (low)
+
+
+- update firmware / retry respeaker
+
+- add in services
+    - timer
+    - alarm
+    - play music
+    
+
+- ability to dim stuff
+    - fans
+    - lights
+
+- more generalized commands
+    - all lights [on / off]
+    - all fans [on / off]
+
+- integrate with Coats AI
+    - still does hubitat stuff separately
+    - "logs" what it does with AI
+    - on reject--make an attempt for the AI to resolve?
+
+.............
+
+LOW PRIORITY
+
+- ability to change color on bulbs
+
+- add in TTS (browser)
+
+- allow user to input hubitat stuff (token / ip's) via terminal?
+
+- ability to minify terminal
