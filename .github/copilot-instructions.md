@@ -5,7 +5,35 @@ globs: *
 
 ## PROJECT OVERVIEW
 
-First thing you do on startup is read ai-instructions.txt. THEN review all js / html files for context, and provide a BRIEF synopsis of what they do
+First thing you do on startup is read ai-instructions.txt. THEN review all js / html files for context, and provide a BRIEF synopsis of what they do. The synopsis should include:
+- Project name and brief description.
+- Core files and their functions.
+- Pipeline description.
+
+The project is named `voiceterminal`: A local, browser-based voice controller that transcribes microphone audio (Whisper in-browser), detects a wake word (“Zentra”), routes the command into an intent, and executes Hubitat Maker API device commands through a local Node HTTPS proxy (to avoid CORS and keep the Hubitat token off the browser).
+
+Core files:
+- `index.html`: Simple browser UI with Hubitat device dropdown, STT controls, and voice log. Defines `window.onVoiceCommand(text, meta)` which calls `window.Intent.route()` then `window.Intent.execute()` using Hubitat context.
+- `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API.
+- `hubitat.js`: Browser-side Hubitat client that interacts with the local proxy to sync devices, build a registry in `localStorage`, update the tokenizer, and send commands.
+- `intentProcessor.js`: Intent routing + execution.
+- `tokenizer.js`: Extracts `{ device, state }` from text.
+  - Uses a greedy device-label match (longest first) plus light fuzzy matching (Levenshtein).
+  - Picks `state` from the device’s allowed command list (populated by `hubitat.js`).
+  - Special-cases contact sensors by mapping spoken `on/off` to `open/close`.
+- `stt.js`: Main-thread speech-to-text orchestration:
+  - Manages microphone, AudioContext graph, and a segment queue.
+  - Receives audio segments from the AudioWorklet and runs Whisper ASR on them.
+  - Calls `IntentProcessor.processSpeechText(...)`, which ultimately emits `window.onVoiceCommand(...)` when a command should execute.
+- `audio-processor.js`: AudioWorkletProcessor that performs VAD + segmentation:
+  - Maintains preroll/postroll buffers and sends finalized speech segments back to the main thread via transferable ArrayBuffer.
+
+Pipeline (end-to-end):
+1. Microphone audio captured in browser
+2. `audio-processor.js` (AudioWorklet) does VAD + segmentation → sends speech segments to main thread
+3. `stt.js` resamples/levels audio → Whisper transcribes to text
+4. `intentProcessor.js` runs phases in order: **Normalize → Fusion Remap → Wake Word Detection → Tokenization → Intent Resolution → Execution**
+5. Execution uses `hubitat.js` → calls local proxy `server.js` → forwards to Hubitat Maker API command endpoint
 
 ## CODE STYLE
 
@@ -17,7 +45,7 @@ First thing you do on startup is read ai-instructions.txt. THEN review all js / 
 
 ## FOLDER ORGANIZATION
 
-(Currently no specific folder organization rules defined)
+All HTML and JS files are located in the `src` directory.
 
 ## TECH STACK
 
