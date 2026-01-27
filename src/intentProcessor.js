@@ -9,7 +9,7 @@
 	const DEFAULT_ALIAS_RULES = [
 
 		// wake word
-		{ canonical: "zentra", aliases: ["zendron","zandron","zantron","dantro","et cetera", "et cetra", "etcetera", "etsetera", "etc","zentrum","center","center on","d'entra","centrum","sandra","santa","then try"] },
+		{ canonical: "zentra", aliases: ["zendron","zandron","zantron","dantro","et cetera", "et cetra", "etcetera", "etsetera", "etc","zentrum","center","center on","d'entra","centrum","sandra","santa","then try","is that true"] },
 
 		// devices
 		{ canonical: "lamp", aliases: ["lamb"] },

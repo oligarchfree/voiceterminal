@@ -1,8 +1,16 @@
 TODO:
 
 
+- get singular / plurals working correctly...
+    - kitchen lights (doesnt work with kitchen light)
+
+- get dimmer working again
+
+- update mic firmaware
+
+
 - add levenshiten function for searching...
-    - device ids 
+    XXX - device ids 
     - states
 
 XXX - create feedback sounds

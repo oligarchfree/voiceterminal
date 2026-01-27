@@ -59,6 +59,7 @@ All HTML and JS files are located in the `src` directory.
 4. **Request clarity** - Request clarification when instructions are unclear.
 5. **Normalization Consistency** - From now on, use "normalizeText" function instead of any others for normalization, except in `hubitat.js` where the norm function has been removed.
 6. **Intent Map Phases** - Follow the Intent Map phases in strict order: Normalize -> Fusion Remap -> Wake Word Detection -> Tokenization -> Intent Resolution -> Execution. Do not merge or reorder them.
+7. **Hubitat "refresh" Command** - The "refresh" command is a Hubitat device command that polls/queries the device for its current state and updates Hubitat's attributes/events. It does not change the device's state but re-syncs Hubitat. The functionality depends on the specific device + driver (Z-Wave/Zigbee, LAN/cloud).
 
 ## WORKFLOW & RELEASE RULES
 
@@ -79,3 +80,4 @@ First thing you do on startup is read ai-instructions.txt
 ## FINAL DOs AND DON'Ts
 
 1.  **Do not create additional files** unless explicitly instructed.
+2.  If `server.js` static path reverts to `"."` instead of `"src"`, immediately correct it back to `"src"`. Investigate possible causes of the reversion, such as formatters or save actions.
