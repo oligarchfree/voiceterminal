@@ -3,22 +3,6 @@ TODO:
 
 - get this working on secondary laptop
 
-XXX - get singular / plurals working correctly...
-    XXX - kitchen lights (doesnt work with kitchen light)
-
-- get dimmer working again
-
-- update mic firmaware
-
-
-- add levenshiten function for searching...
-    XXX - device ids 
-    - states
-
-XXX - create feedback sounds
-    XXX - accept (high)
-    XXX - reject (low)
-
 
 - update firmware / retry respeaker
 
@@ -27,14 +11,6 @@ XXX - create feedback sounds
     - alarm
     - play music
     
-
-- ability to dim stuff
-    - fans
-    - lights
-
-- more generalized commands
-    - all lights [on / off]
-    - all fans [on / off]
 
 - integrate with Coats AI
     - still does hubitat stuff separately
@@ -52,3 +28,7 @@ LOW PRIORITY
 - allow user to input hubitat stuff (token / ip's) via terminal?
 
 - ability to minify terminal
+
+
+- add levenshiten function for searching...
+    - states
