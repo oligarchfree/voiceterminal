@@ -327,7 +327,8 @@
 		processSpeechText,
 		route,
 		execute,
-		handle
+		handle,
+		playSound
 	};
 
 	window.IntentProcessor = {

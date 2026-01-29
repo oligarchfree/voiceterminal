@@ -187,6 +187,7 @@
 <script src="./hubitat.js"></script>
 <script src="./intentProcessor.js"></script>
 <script src="./tokenizer.js"></script>
+<script src="./timerService.js"></script>
 <script src="./stt.js"></script>
 
 <script>
@@ -223,5 +224,23 @@
 </script>
 <p>chrome://settings/content/microphone</p>
 <textarea id="chatLog" style="width: 80%;height:500px">CHAT LOG</textarea>
+
+<hr style="margin: 40px 0; border: 2px solid #ccc;">
+<h2>Timer</h2>
+<div class="row">
+	<input id="timerMs" type="number" placeholder="Milliseconds" value="5000" />
+	<button id="timerBtn">Start Timer</button>
+	<button id="stopTimerBtn">Stop Timer</button>
+</div>
+<div id="timerCountdown" style="margin-top:10px; font-size:20px; font-weight:bold;"></div>
+<script>
+	document.getElementById("timerBtn").onclick = () => {
+		const ms = parseInt(document.getElementById("timerMs").value, 10) || 0;
+		window.TimerService?.startTimer(ms);
+	};
+	document.getElementById("stopTimerBtn").onclick = () => {
+		window.TimerService?.stopTimer();
+	};
+</script>
 </body>
 </html>
