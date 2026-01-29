@@ -19,7 +19,7 @@
 		{ canonical: "close", aliases: ["closed"] },
 		{ canonical: "fan on", aliases: ["fanon"] },
 		{ canonical: "cans", aliases: ["cairns"] },
-		{ canonical: "kitchen", aliases: ["kishan"] },
+		{ canonical: "kitchen", aliases: ["kishan","cinch and"] },
 
 		// states
 		{ canonical: "off", aliases: ["cough"] },

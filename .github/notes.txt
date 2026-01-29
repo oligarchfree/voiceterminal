@@ -1,8 +1,8 @@
 TODO:
 
 
-- get singular / plurals working correctly...
-    - kitchen lights (doesnt work with kitchen light)
+XXX - get singular / plurals working correctly...
+    XXX - kitchen lights (doesnt work with kitchen light)
 
 - get dimmer working again
 
