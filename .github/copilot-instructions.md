@@ -28,7 +28,7 @@ Core files:
   - Calls `IntentProcessor.processSpeechText(...)`, which ultimately emits `window.onVoiceCommand(...)` when a command should execute.
 - `audio-processor.js`: AudioWorkletProcessor that performs VAD + segmentation:
   - Maintains preroll/postroll buffers and sends finalized speech segments back to the main thread via transferable ArrayBuffer.
-- `timerService.js`: Contains `startTimer(numMilliseconds)` function that logs to the console and plays a tone when the timer expires.
+- `timerService.js`: Contains `startTimer(numMilliseconds)` function that starts a timer, and plays a tone repeatedly when the timer expires. Also contains a `stopTimer()` function that stops the timer and tone.
 
 Pipeline (end-to-end):
 1. Microphone audio captured in browser
