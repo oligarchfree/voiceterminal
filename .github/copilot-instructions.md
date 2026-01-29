@@ -63,7 +63,7 @@ All HTML and JS files are located in the `src` directory.
 7. **Hubitat "refresh" Command** - The "refresh" command is a Hubitat device command that polls/queries the device for its current state and updates Hubitat's attributes/events. It does not change the device's state but re-syncs Hubitat. The functionality depends on the specific device + driver (Z-Wave/Zigbee, LAN/cloud).
 8. **Tokenizer Logging** - The tokenizer should print out each token by slot (device: "kitchen light", state: "on", etc.) whenever a command is tokenized.
 9. **State Parameters in Tokenizer** - The `tokenizer.js` will now identify and tokenize state parameters. When the tokenizer recognizes a valid state for a device that requires an additional parameter (e.g., setLevel, setHue), it will tokenize the following whole "alphanumeric block of text" as the "state parameter" token. The `tokenizeCommand` function now returns `{ device, state, stateParam }`.
-10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`.
+10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`. When a `stateParam` is extracted by the tokenizer, the `execute` function in `intentProcessor.js` passes it to `hub.sendCommand(deviceId, state, stateParam)`.
 
 ## WORKFLOW & RELEASE RULES
 
