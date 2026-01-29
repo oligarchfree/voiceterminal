@@ -2,6 +2,15 @@
 (() => {
 	"use strict";
 
+	// States that require an additional parameter (e.g. setLevel 50, setHue 66)
+	const STATES_WITH_PARAMS = [
+		"setLevel",
+		"setHue",
+		"setSaturation",
+		"setColorTemperature",
+		"setSpeed",
+	];
+
 	let VALID_DEVICES = new Set(["light", "fan", "switch", "dimmer", "rgb_light"]);
 	let deviceLabels = []; // Store sorted by length (longest first) for greedy matching
 	let deviceStates = {}; // Maps device label -> array of valid states
@@ -116,10 +125,22 @@
 		// Find state as a complete word (word boundary) using device-specific valid states
 		const validStates = deviceStates[device] || [];
 		let state = null;
+		let stateParam = null;
+
 		for (const s of validStates) {
 			const regex = new RegExp(`\\b${s}\\b`, 'i');
-			if (regex.test(text)) {
+			const match = regex.exec(text);
+			if (match) {
 				state = s;
+
+				// If this state requires a parameter, grab the next alphanumeric block
+				if (STATES_WITH_PARAMS.includes(s)) {
+					const afterState = text.slice(match.index + s.length);
+					const paramMatch = afterState.match(/^\s+([a-z0-9]+)/i);
+					if (paramMatch) {
+						stateParam = paramMatch[1];
+					}
+				}
 				break;
 			}
 		}
@@ -127,8 +148,8 @@
 		if (!state) return null;
 
 
-		console.log(`[Tokenizer] device: "${device}", state: "${state}"`);
-		return { device, state };
+		console.log(`[Tokenizer] device: "${device}", state: "${state}"` + (stateParam ? `, stateParam: "${stateParam}"` : ""));
+		return { device, state, stateParam };
 	}
 
 	window.Tokenizer = {

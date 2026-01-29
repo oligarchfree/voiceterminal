@@ -14,13 +14,14 @@ The project is named `voiceterminal`: A local, browser-based voice controller th
 
 Core files:
 - `index.html`: Simple browser UI with Hubitat device dropdown, STT controls, and voice log. Defines `window.onVoiceCommand(text, meta)` which calls `window.Intent.route()` then `window.Intent.execute()` using Hubitat context.
-- `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API.
+- `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API. Auto-detects Hubitat hub.
 - `hubitat.js`: Browser-side Hubitat client that interacts with the local proxy to sync devices, build a registry in `localStorage`, update the tokenizer, and send commands.
-- `intentProcessor.js`: Intent routing + execution.
-- `tokenizer.js`: Extracts `{ device, state }` from text.
+- `intentProcessor.js`: Intent routing + execution. Plays feedback sounds.
+- `tokenizer.js`: Extracts `{ device, state, stateParam }` from text.
   - Uses a greedy device-label match (longest first) plus light fuzzy matching (Levenshtein).
   - Picks `state` from the device’s allowed command list (populated by `hubitat.js`).
   - Special-cases contact sensors by mapping spoken `on/off` to `open/close`.
+  - Tokenizes the following whole "alphanumeric block of text" as the "state parameter" token, when a valid state for a device requires an additional parameter.
 - `stt.js`: Main-thread speech-to-text orchestration:
   - Manages microphone, AudioContext graph, and a segment queue.
   - Receives audio segments from the AudioWorklet and runs Whisper ASR on them.
@@ -61,6 +62,8 @@ All HTML and JS files are located in the `src` directory.
 6. **Intent Map Phases** - Follow the Intent Map phases in strict order: Normalize -> Fusion Remap -> Wake Word Detection -> Tokenization -> Intent Resolution -> Execution. Do not merge or reorder them.
 7. **Hubitat "refresh" Command** - The "refresh" command is a Hubitat device command that polls/queries the device for its current state and updates Hubitat's attributes/events. It does not change the device's state but re-syncs Hubitat. The functionality depends on the specific device + driver (Z-Wave/Zigbee, LAN/cloud).
 8. **Tokenizer Logging** - The tokenizer should print out each token by slot (device: "kitchen light", state: "on", etc.) whenever a command is tokenized.
+9. **State Parameters in Tokenizer** - The `tokenizer.js` will now identify and tokenize state parameters. When the tokenizer recognizes a valid state for a device that requires an additional parameter (e.g., setLevel, setHue), it will tokenize the following whole "alphanumeric block of text" as the "state parameter" token. The `tokenizeCommand` function now returns `{ device, state, stateParam }`.
+10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`.
 
 ## WORKFLOW & RELEASE RULES
 

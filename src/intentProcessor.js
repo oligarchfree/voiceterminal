@@ -302,9 +302,9 @@
 
 		const deviceId = resolveDeviceIdFromSlots(slots, hub);
 		
-		// If additionalParams exists, pass it as the secondary parameter to sendCommand
-		if (slots.additionalParams) {
-			return hub.sendCommand(deviceId, slots.state, slots.additionalParams);
+		// If stateParam exists, pass it as the secondary parameter to sendCommand
+		if (slots.stateParam) {
+			return hub.sendCommand(deviceId, slots.state, slots.stateParam);
 		} else {
 			return hub.sendCommand(deviceId, slots.state);
 		}
