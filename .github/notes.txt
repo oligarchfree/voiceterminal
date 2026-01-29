@@ -1,6 +1,8 @@
 TODO:
 
 
+- get this working on secondary laptop
+
 XXX - get singular / plurals working correctly...
     XXX - kitchen lights (doesnt work with kitchen light)
 

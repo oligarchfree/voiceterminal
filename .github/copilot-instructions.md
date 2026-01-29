@@ -60,6 +60,7 @@ All HTML and JS files are located in the `src` directory.
 5. **Normalization Consistency** - From now on, use "normalizeText" function instead of any others for normalization, except in `hubitat.js` where the norm function has been removed.
 6. **Intent Map Phases** - Follow the Intent Map phases in strict order: Normalize -> Fusion Remap -> Wake Word Detection -> Tokenization -> Intent Resolution -> Execution. Do not merge or reorder them.
 7. **Hubitat "refresh" Command** - The "refresh" command is a Hubitat device command that polls/queries the device for its current state and updates Hubitat's attributes/events. It does not change the device's state but re-syncs Hubitat. The functionality depends on the specific device + driver (Z-Wave/Zigbee, LAN/cloud).
+8. **Tokenizer Logging** - The tokenizer should print out each token by slot (device: "kitchen light", state: "on", etc.) whenever a command is tokenized.
 
 ## WORKFLOW & RELEASE RULES
 

@@ -103,7 +103,7 @@
 			}
 			log("Intent module:", window.Intent.VERSION || "(no version)");
 
-			const routed = window.Intent.route(text);
+			const routed = window.Intent.route(text, meta.slots);
 			log("Selected device:", window.Hubitat.getSelectedDeviceId());
 			log("Voice:", JSON.stringify(text));
 			log("Route result:", routed ? `✅ ${routed.intent}` : "❌ null (no match)");

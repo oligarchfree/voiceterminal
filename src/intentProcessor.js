@@ -172,14 +172,14 @@
 
 		let after = textAfterWord(fusedText, CHAT_NAME);
 		if (after !== null && after.length > 0) {
-			// Check if wake+command will route successfully
-			let willRoute = false;
+			// Tokenize once and reuse
+			let slots = null;
 			try {
 				if (window.Tokenizer && typeof window.Tokenizer.tokenizeCommand === "function") {
-					const slots = window.Tokenizer.tokenizeCommand(after);
-					willRoute = !!(slots && slots.state && slots.device);
+					slots = window.Tokenizer.tokenizeCommand(after);
 				}
 			} catch {}
+			const willRoute = !!(slots && slots.state && slots.device);
 
 
 			// TEMP:
@@ -190,7 +190,8 @@
 				rawText: rawTrimmed,
 				normalizedText: normalized,
 				fusedText,
-				transcribeSeconds
+				transcribeSeconds,
+				slots
 			});
 
 			// play success sound if routed, rejection if not
@@ -212,21 +213,22 @@
 		}
 
 		if (activeMode) {
-			// Check if command will route successfully before emitting
-			let willRoute = false;
+			// Tokenize once and reuse
+			let slots = null;
 			try {
 				if (window.Tokenizer && typeof window.Tokenizer.tokenizeCommand === "function") {
-					const slots = window.Tokenizer.tokenizeCommand(fusedText);
-					willRoute = !!(slots && slots.state && slots.device);
+					slots = window.Tokenizer.tokenizeCommand(fusedText);
 				}
 			} catch {}
+			const willRoute = !!(slots && slots.state && slots.device);
 
 			emitCommand?.(fusedText, {
 				source: "active",
 				rawText: rawTrimmed,
 				normalizedText: normalized,
 				fusedText,
-				transcribeSeconds
+				transcribeSeconds,
+				slots
 			});
 			
 			// play success sound if routed, rejection if not
@@ -242,7 +244,12 @@
 	}
 
 	//------
-	function route(text) {
+	function route(text, precomputedSlots = null) {
+		// If slots already computed, reuse them
+		if (precomputedSlots && precomputedSlots.state && precomputedSlots.device) {
+			return { intent: "device_set", slots: precomputedSlots };
+		}
+
 		// Phase A applied here: normalize -> strip fillers -> tokenize
 		// const cleaned = stripFillers(normalizeText(text));
     	// const cleaned = normalizeText(text);

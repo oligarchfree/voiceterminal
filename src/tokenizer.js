@@ -127,6 +127,7 @@
 		if (!state) return null;
 
 
+		console.log(`[Tokenizer] device: "${device}", state: "${state}"`);
 		return { device, state };
 	}
 
