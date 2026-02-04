@@ -94,9 +94,10 @@
 						// If this state requires a parameter, grab the next alphanumeric block
 						if (STATES_WITH_PARAMS.includes(s)) {
 							const afterState = text.slice(match.index + s.length);
-							const paramMatch = afterState.match(/^\s+([a-z0-9]+)/i);
+							// For services, grab everything after the state (multi-token params like "10 seconds")
+							const paramMatch = afterState.match(/^\s+(.+)/i);
 							if (paramMatch) {
-								stateParam = paramMatch[1];
+								stateParam = paramMatch[1].trim();
 							}
 						}
 						break;

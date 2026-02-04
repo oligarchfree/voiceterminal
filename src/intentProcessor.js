@@ -21,6 +21,18 @@
 		{ canonical: "cans", aliases: ["cairns"] },
 		{ canonical: "kitchen", aliases: ["kishan","cinch and"] },
 
+		// numbers
+		{ canonical: "1", aliases: ["one"] },
+		{ canonical: "2", aliases: ["two"] },
+		{ canonical: "3", aliases: ["three"] },
+		{ canonical: "4", aliases: ["four"] },
+		{ canonical: "5", aliases: ["five"] },
+		{ canonical: "6", aliases: ["six"] },
+		{ canonical: "7", aliases: ["seven"] },
+		{ canonical: "8", aliases: ["eight"] },
+		{ canonical: "9", aliases: ["nine"] },
+		{ canonical: "10", aliases: ["ten"] },
+		
 		// states
 		{ canonical: "off", aliases: ["cough"] },
 		{ canonical: "on", aliases: ["honor"] },
