@@ -179,7 +179,7 @@
 					slots = window.Tokenizer.tokenizeCommand(after);
 				}
 			} catch {}
-			const willRoute = !!(slots && slots.state && slots.device);
+			const willRoute = !!(slots && slots.state && slots.target);
 
 
 			// TEMP:
@@ -220,7 +220,7 @@
 					slots = window.Tokenizer.tokenizeCommand(fusedText);
 				}
 			} catch {}
-			const willRoute = !!(slots && slots.state && slots.device);
+			const willRoute = !!(slots && slots.state && slots.target);
 
 			emitCommand?.(fusedText, {
 				source: "active",
@@ -246,15 +246,13 @@
 	//------
 	function route(text, precomputedSlots = null) {
 		// If slots already computed, reuse them
-		if (precomputedSlots && precomputedSlots.state && precomputedSlots.device) {
-			return { intent: "device_set", slots: precomputedSlots };
+		if (precomputedSlots && precomputedSlots.state && precomputedSlots.target) {
+			const intent = precomputedSlots.type === "service" ? "service_call" : "device_set";
+			return { intent, slots: precomputedSlots };
 		}
 
 		// Phase A applied here: normalize -> strip fillers -> tokenize
-		// const cleaned = stripFillers(normalizeText(text));
-    	// const cleaned = normalizeText(text);
 		const cleaned = applyFusionRemap(normalizeText(text));
-
 
 		if (!window.Tokenizer || typeof window.Tokenizer.tokenizeCommand !== "function") {
 			throw new Error("Tokenizer.tokenizeCommand is missing");
@@ -263,9 +261,10 @@
 		const slots = window.Tokenizer.tokenizeCommand(cleaned);
 		if (!slots) return null;
 
-		if (!slots.state || !slots.device) return null;
+		if (!slots.state || !slots.target) return null;
 
-		return { intent: "device_set", slots };
+		const intent = slots.type === "service" ? "service_call" : "device_set";
+		return { intent, slots };
 	}
 
 	//------
@@ -273,7 +272,7 @@
 		const registry = hub.getRegistry?.();
 		if (!registry || !registry.byId) throw new Error("No device registry loaded (click Sync Devices)");
 
-		const deviceLabel = slots.device;
+		const deviceLabel = slots.target;
 		const hits = [];
 
 		for (const id of Object.keys(registry.byId)) {
@@ -289,16 +288,21 @@
 	//------
 	async function execute(routed, ctx) {
 		if (!routed) throw new Error("No routed intent");
-		if (!ctx || !ctx.hubitat) throw new Error("Missing ctx.hubitat");
-
-		const hub = ctx.hubitat;
-
-		if (routed.intent !== "device_set") throw new Error("Unknown intent: " + routed.intent);
 
 		const slots = routed.slots;
-		if (!slots || !slots.device || !slots.state) {
-			throw new Error("Missing slots (device/state)");
+		if (!slots || !slots.target || !slots.state) {
+			throw new Error("Missing slots (target/state)");
 		}
+
+		// Route based on type: service or device
+		if (slots.type === "service") {
+			if (!window.ServiceManager) throw new Error("ServiceManager not loaded");
+			return window.ServiceManager.execute(slots.target, slots.state, slots.stateParam);
+		}
+
+		// Device routing
+		if (!ctx || !ctx.hubitat) throw new Error("Missing ctx.hubitat");
+		const hub = ctx.hubitat;
 
 		const deviceId = resolveDeviceIdFromSlots(slots, hub);
 		

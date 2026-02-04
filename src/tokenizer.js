@@ -9,11 +9,17 @@
 		"setSaturation",
 		"setColorTemperature",
 		"setSpeed",
+		"start",
 	];
+
+	// Valid services and their states (mirrors device structure)
+	const VALID_SERVICES = {
+		"timer": ["start", "stop"]
+	};
 
 	// is this necessary?
 	let VALID_DEVICES = new Set(["light", "fan", "switch", "dimmer", "rgb_light"]);
-	
+
 	let deviceLabels = []; // Store sorted by length (longest first) for greedy matching
 	let deviceStates = {}; // Maps device label -> array of valid states
 	let deviceTypes = {}; // Maps device label -> device type
@@ -71,6 +77,40 @@
 		let text = normSpace(fusedText);
 		if (!text) return null;
 
+		// --- Try service match first ---
+		for (const serviceName of Object.keys(VALID_SERVICES)) {
+			const regex = new RegExp(`\\b${serviceName}\\b`, 'i');
+			if (regex.test(text)) {
+				const validStates = VALID_SERVICES[serviceName];
+				let state = null;
+				let stateParam = null;
+
+				for (const s of validStates) {
+					const stateRegex = new RegExp(`\\b${s}\\b`, 'i');
+					const match = stateRegex.exec(text);
+					if (match) {
+						state = s;
+
+						// If this state requires a parameter, grab the next alphanumeric block
+						if (STATES_WITH_PARAMS.includes(s)) {
+							const afterState = text.slice(match.index + s.length);
+							const paramMatch = afterState.match(/^\s+([a-z0-9]+)/i);
+							if (paramMatch) {
+								stateParam = paramMatch[1];
+							}
+						}
+						break;
+					}
+				}
+
+				if (state) {
+					console.log(`[Tokenizer] type: "service", target: "${serviceName}", state: "${state}"` + (stateParam ? `, stateParam: "${stateParam}"` : ""));
+					return { type: "service", target: serviceName, state, stateParam };
+				}
+			}
+		}
+
+		// --- Fall back to device matching ---
 		// Find device by searching for complete device names (longest first)
 		// Use fuzzy matching with levenshtein distance
 		let device = null;
@@ -150,8 +190,8 @@
 		if (!state) return null;
 
 
-		console.log(`[Tokenizer] device: "${device}", state: "${state}"` + (stateParam ? `, stateParam: "${stateParam}"` : ""));
-		return { device, state, stateParam };
+		console.log(`[Tokenizer] type: "device", target: "${device}", state: "${state}"` + (stateParam ? `, stateParam: "${stateParam}"` : ""));
+		return { type: "device", target: device, state, stateParam };
 	}
 
 	window.Tokenizer = {

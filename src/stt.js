@@ -290,6 +290,9 @@
     try {
       if (!seg || !seg.pcm || seg.pcm.length === 0) return;
 
+      // Skip transcription while timer timeout sound is playing
+      if (window.TimerService?.isPlayingTimeOutSound?.()) return;
+
       // resample to Whisper SR
       const pcm = resample(seg.pcm, seg.inSampleRate, seg.params.SAMPLE_RATE);
       const duration = pcm.length / seg.params.SAMPLE_RATE;

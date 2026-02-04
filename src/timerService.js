@@ -3,6 +3,7 @@
 	"use strict";
 
 	const MAX_PLAYS = 5;
+	const DEFAULT_DURATION_MS = 5000; // 5 seconds default
 
 	let timerId = null;
 	let countdownId = null;
@@ -20,6 +21,21 @@
 				el.textContent = "";
 			}
 		}
+	}
+
+	//------
+	function playTimeOutSound() {
+		// Play tone immediately, then repeat every 1 second (max MAX_PLAYS times)
+		let playCount = 1;
+		window.Intent?.playSound?.(880, 500, 0.2);
+		alarmId = setInterval(() => {
+			playCount++;
+			window.Intent?.playSound?.(880, 500, 0.2);
+			if (playCount >= MAX_PLAYS) {
+				clearInterval(alarmId);
+				alarmId = null;
+			}
+		}, 1000);
 	}
 
 	//------
@@ -50,17 +66,7 @@
 			remainingMs = 0;
 			updateCountdownDisplay();
 
-			// Play tone immediately, then repeat every 1 second (max 10 times)
-			let playCount = 1;
-			window.Intent?.playSound?.(880, 500, 0.2);
-			alarmId = setInterval(() => {
-				playCount++;
-				window.Intent?.playSound?.(880, 500, 0.2);
-				if (playCount >= MAX_PLAYS) {
-					clearInterval(alarmId);
-					alarmId = null;
-				}
-			}, 1000);
+			playTimeOutSound();
 		}, numMilliseconds);
 	}
 
@@ -77,9 +83,16 @@
 		updateCountdownDisplay();
 	}
 
+	//------
+	function isPlayingTimeOutSound() {
+		return alarmId !== null;
+	}
+
 	window.TimerService = {
 		startTimer,
-		stopTimer
+		stopTimer,
+		isPlayingTimeOutSound,
+		DEFAULT_DURATION_MS
 	};
 
 	console.log("[TimerService] loaded");
