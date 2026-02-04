@@ -11,7 +11,9 @@
 		"setSpeed",
 	];
 
+	// is this necessary?
 	let VALID_DEVICES = new Set(["light", "fan", "switch", "dimmer", "rgb_light"]);
+	
 	let deviceLabels = []; // Store sorted by length (longest first) for greedy matching
 	let deviceStates = {}; // Maps device label -> array of valid states
 	let deviceTypes = {}; // Maps device label -> device type

@@ -13,9 +13,9 @@ First thing you do on startup is read ai-instructions.txt. THEN review all js / 
 The project is named `voiceterminal`: A local, browser-based voice controller that transcribes microphone audio (Whisper in-browser), detects a wake word (“Zentra”), routes the command into an intent, and executes Hubitat Maker API device commands through a local Node HTTPS proxy (to avoid CORS and keep the Hubitat token off the browser).
 
 Core files:
-- `index.html`: Simple browser UI with Hubitat device dropdown, STT controls, and voice log. Defines `window.onVoiceCommand(text, meta)` which calls `window.Intent.route()` then `window.Intent.execute()` using Hubitat context.
+- `index.html`: Simple browser UI with Hubitat device dropdown, STT controls, and voice log. Defines `window.onVoiceCommand(text, meta)` which calls `window.Intent.route()` then `window.Intent.execute()` using Hubitat context. Includes timer controls.
 - `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API. Auto-detects Hubitat hub.
-- `hubitat.js`: Browser-side Hubitat client that interacts with the local proxy to sync devices, build a registry in `localStorage`, update the tokenizer, and send commands.
+- `hubitat.js`: Browser-side Hubitat client that interacts with the local proxy to sync devices, build a registry in `localStorage`, update the tokenizer, and send commands. Calls `updateValidDevices` at the end of `syncDevices()`. This happens when devices are synced from Hubitat (on page load and when "Sync Devices" button is clicked).
 - `intentProcessor.js`: Intent routing + execution. Plays feedback sounds.
 - `tokenizer.js`: Extracts `{ device, state, stateParam }` from text.
   - Uses a greedy device-label match (longest first) plus light fuzzy matching (Levenshtein).
@@ -28,7 +28,7 @@ Core files:
   - Calls `IntentProcessor.processSpeechText(...)`, which ultimately emits `window.onVoiceCommand(...)` when a command should execute.
 - `audio-processor.js`: AudioWorkletProcessor that performs VAD + segmentation:
   - Maintains preroll/postroll buffers and sends finalized speech segments back to the main thread via transferable ArrayBuffer.
-- `timerService.js`: Contains `startTimer(numMilliseconds)` function that starts a timer, and plays a tone repeatedly when the timer expires. Also contains a `stopTimer()` function that stops the timer and tone.
+- `timerService.js`: Contains `startTimer(numMilliseconds)` function that starts a timer, and plays a tone repeatedly when the timer expires (up to a maximum number of plays). Also contains a `stopTimer()` function that stops the timer and tone.
 
 Pipeline (end-to-end):
 1. Microphone audio captured in browser
@@ -65,6 +65,8 @@ All HTML and JS files are located in the `src` directory.
 8. **Tokenizer Logging** - The tokenizer should print out each token by slot (device: "kitchen light", state: "on", etc.) whenever a command is tokenized.
 9. **State Parameters in Tokenizer** - The `tokenizer.js` will now identify and tokenize state parameters. When the tokenizer recognizes a valid state for a device that requires an additional parameter (e.g., setLevel, setHue), it will tokenize the following whole "alphanumeric block of text" as the "state parameter" token. The `tokenizeCommand` function now returns `{ device, state, stateParam }`.
 10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`. When a `stateParam` is extracted by the tokenizer, the `execute` function in `intentProcessor.js` passes it to `hub.sendCommand(deviceId, state, stateParam)`.
+11. **Valid Services Array** - The `tokenizer.js` now contains a `VALID_SERVICES` array. For now, it is populated only with the service "timer start".
+12. **Timer Service** - The `timerService.js` contains functions `startTimer(numMilliseconds)` and `stopTimer()`. The `startTimer` function starts a timer that expires after `numMilliseconds`. Upon expiration, it plays a tone (using `window.Intent?.playSound?.(880, 500, 0.2)`) repeatedly with 1-second gaps, up to a maximum of `MAX_PLAYS` (currently 10) times. The `stopTimer` function stops the timer and the repeated tone.
 
 ## WORKFLOW & RELEASE RULES
 

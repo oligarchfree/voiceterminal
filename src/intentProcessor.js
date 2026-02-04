@@ -9,12 +9,12 @@
 	const DEFAULT_ALIAS_RULES = [
 
 		// wake word
-		{ canonical: "zentra", aliases: ["zendron","zandron","zantron","dantro","et cetera", "et cetra", "etcetera", "etsetera", "etc","zentrum","center","center on","d'entra","centrum","sandra","santa","then try","is that true"] },
+		{ canonical: "zentra", aliases: ["zendron","zandron","zantron","dantro","et cetera", "et cetra", "etcetera", "etsetera", "etc","zentrum","center","center on","d'entra","centrum","sandra","santa","then try","is that true","cessar","zephyr"] },
 
 		// devices
 		{ canonical: "lamp", aliases: ["lamb"] },
 		{ canonical: "light", aliases: ["lite","late","laid","like","life", "might"] },
-		{ canonical: "lights", aliases: ["lites","lates","laids","likes","lifes", "mights", "lanes"] },// combine?
+		{ canonical: "lights", aliases: ["lites","lates","laids","likes","lifes", "mights", "lanes","my thoughts"] },// combine?
     	{ canonical: "living", aliases: ["leaving","looking"] },
 		{ canonical: "close", aliases: ["closed"] },
 		{ canonical: "fan on", aliases: ["fanon"] },
