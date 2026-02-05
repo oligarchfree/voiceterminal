@@ -14,9 +14,9 @@ The project is named `voiceterminal`: A local, browser-based voice controller th
 
 Core files:
 - `index.html`: Simple browser UI with Hubitat device dropdown, STT controls, and voice log. Defines `window.onVoiceCommand(text, meta)` which calls `window.Intent.route()` then `window.Intent.execute()` using Hubitat context. Includes timer controls.
-- `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API. Auto-detects Hubitat hub.
+- `server.js`: Local HTTPS Express server that serves static files and proxies `GET /hubitat/<path>` requests to the Hubitat API. Auto-detects Hubitat hub. Runs on port 8787.
 - `hubitat.js`: Browser-side Hubitat client that interacts with the local proxy to sync devices, build a registry in `localStorage`, update the tokenizer, and send commands. Calls `updateValidDevices` at the end of `syncDevices()`. This happens when devices are synced from Hubitat (on page load and when "Sync Devices" button is clicked).
-- `intentProcessor.js`: Intent routing + execution. Plays feedback sounds.
+- `intentProcessor.js`: Intent routing + execution. Plays feedback sounds. Phases: **Normalize → Fusion Remap → Wake Word → Tokenize → Route → Execute**.
 - `tokenizer.js`: Extracts `{ device, state, stateParam }` from text.
   - Uses a greedy device-label match (longest first) plus light fuzzy matching (Levenshtein).
   - Picks `state` from the device’s allowed command list (populated by `hubitat.js`).
@@ -26,16 +26,18 @@ Core files:
   - Manages microphone, AudioContext graph, and a segment queue.
   - Receives audio segments from the AudioWorklet and runs Whisper ASR on them.
   - Calls `IntentProcessor.processSpeechText(...)`, which ultimately emits `window.onVoiceCommand(...)` when a command should execute.
+  - Skips transcription while timer timeout sound is playing.
 - `audio-processor.js`: AudioWorkletProcessor that performs VAD + segmentation:
   - Maintains preroll/postroll buffers and sends finalized speech segments back to the main thread via transferable ArrayBuffer.
-- `timerService.js`: Contains `startTimer(numMilliseconds)` function that starts a timer, and plays a tone repeatedly when the timer expires (up to a maximum number of plays). Also contains a `stopTimer()` function that stops the timer and tone.
+- `timerService.js`: Contains `startTimer(numMilliseconds)` function that starts a timer, and plays a tone repeatedly when the timer expires (up to a maximum number of plays). Also contains a `stopTimer()` function that stops the timer and tone. Contains `isPlayingTimeOutSound()` that returns `true` when the sound loop is playing, and `false` otherwise. Contains `playTimeOutSound()` that handles the timer expiration sound loop. `DEFAULT_DURATION_MS = 60000` (1 minute) is the initial default timer duration if no parameter is specified.
+- `serviceManager.js`: Contains `execute(target, state, stateParam)` function that routes service commands to the appropriate service. If no parameter is given for "timer start", it uses the `DEFAULT_DURATION_MS` setting on the `timerService`. Converts timer "start" parameters from seconds to milliseconds before calling the `TimerService.startTimer()` function.
 
 Pipeline (end-to-end):
 1. Microphone audio captured in browser
 2. `audio-processor.js` (AudioWorklet) does VAD + segmentation → sends speech segments to main thread
 3. `stt.js` resamples/levels audio → Whisper transcribes to text
 4. `intentProcessor.js` runs phases in order: **Normalize → Fusion Remap → Wake Word Detection → Tokenization → Intent Resolution → Execution**
-5. Execution uses `hubitat.js` → calls local proxy `server.js` → forwards to Hubitat Maker API command endpoint
+5. Execution uses `hubitat.js` → calls local proxy `server.js` → forwards to Hubitat Maker API command endpoint, OR executes a local service via `serviceManager.js`
 
 ## CODE STYLE
 
@@ -64,9 +66,25 @@ All HTML and JS files are located in the `src` directory.
 7. **Hubitat "refresh" Command** - The "refresh" command is a Hubitat device command that polls/queries the device for its current state and updates Hubitat's attributes/events. It does not change the device's state but re-syncs Hubitat. The functionality depends on the specific device + driver (Z-Wave/Zigbee, LAN/cloud).
 8. **Tokenizer Logging** - The tokenizer should print out each token by slot (device: "kitchen light", state: "on", etc.) whenever a command is tokenized.
 9. **State Parameters in Tokenizer** - The `tokenizer.js` will now identify and tokenize state parameters. When the tokenizer recognizes a valid state for a device that requires an additional parameter (e.g., setLevel, setHue), it will tokenize the following whole "alphanumeric block of text" as the "state parameter" token. The `tokenizeCommand` function now returns `{ device, state, stateParam }`.
-10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`. When a `stateParam` is extracted by the tokenizer, the `execute` function in `intentProcessor.js` passes it to `hub.sendCommand(deviceId, state, stateParam)`.
-11. **Valid Services Array** - The `tokenizer.js` now contains a `VALID_SERVICES` array. For now, it is populated only with the service "timer start".
-12. **Timer Service** - The `timerService.js` contains functions `startTimer(numMilliseconds)` and `stopTimer()`. The `startTimer` function starts a timer that expires after `numMilliseconds`. Upon expiration, it plays a tone (using `window.Intent?.playSound?.(880, 500, 0.2)`) repeatedly with 1-second gaps, up to a maximum of `MAX_PLAYS` (currently 10) times. The `stopTimer` function stops the timer and the repeated tone.
+10. **STATES_WITH_PARAMS Array** - The `tokenizer.js` contains a `STATES_WITH_PARAMS` array that defines which states require additional parameters. This array includes, but is not limited to: `setLevel`, `setHue`, `setSaturation`, `setColorTemperature`, `setSpeed`, and `start`. When a `stateParam` is extracted by the tokenizer, the `execute` function in `intentProcessor.js` passes it to `hub.sendCommand(deviceId, state, stateParam)`.
+11. **Valid Services Array** - The `tokenizer.js` now contains a `VALID_SERVICES` map that defines valid services and their states, mirroring the device structure. For now, it is populated only with the service "timer" which has "start" and "stop" states.
+12. **Timer Service** - The `timerService.js` contains functions `startTimer(numMilliseconds)` and `stopTimer()`. The `startTimer` function starts a timer that expires after `numMilliseconds`. Upon expiration, it plays a tone (using `window.Intent?.playSound?.(880, 500, 0.2)`) repeatedly with 1-second gaps, up to a maximum of `MAX_PLAYS` (currently 10) times. The `stopTimer` function stops the timer and the repeated tone. It also contains `isPlayingTimeOutSound()` that returns `true` when `alarmId` is active (sound loop is playing), `false` otherwise. Contains `playTimeOutSound()` that handles the timer expiration sound loop. `DEFAULT_DURATION_MS = 60000` (1 minute) is the initial default timer duration if no parameter is specified.
+13. **Unified Token Structure** - The tokenizer now returns a unified token structure:
+```javascript
+{
+    type: "device" | "service",
+    target: "kitchen light" | "timer",    // the device label or service name
+    state: "on" | "start",
+    stateParam: "50" | "5000" | null
+}
+```
+`type` differentiates between device and service commands.
+14. **Service Manager** - The `serviceManager.js` contains an `execute(target, state, stateParam)` function that routes service commands. If no parameter is given for "timer start", it uses the `DEFAULT_DURATION_MS` setting on the `timerService`. Converts timer "start" parameters from seconds to milliseconds before calling the `TimerService.startTimer()` function.
+15. **Intent Routing** - The `route()` function in `intentProcessor.js` now returns `{ intent: "device_set" | "service_call", slots }` based on the token `type`.
+16. **Execution Routing** - The `execute()` function in `intentProcessor.js` checks `slots.type` and routes accordingly:
+   - `"device"` → route to `Hubitat`
+   - `"service"` → route to `ServiceManager`
+17. **Timer Parameter Processing** - The `serviceManager.js` processes the parameter for the "timer start" command. It can accept parameters in the format of a number of seconds, a number of minutes, or a combination of both (e.g., "timer start 1 minute 34 seconds"). If no parameter is given for "timer start", it uses the `DEFAULT_DURATION_MS` setting on the `timerService`. Converts timer "start" parameters from seconds to milliseconds before calling the `TimerService.startTimer()` function. It also stores the last used timer duration as the new default.
 
 ## WORKFLOW & RELEASE RULES
 

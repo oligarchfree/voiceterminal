@@ -16,12 +16,16 @@ class HubitatConfig {
 
 //------
 const locations = {
+
+	// AI hub IP:
 	postOak: new HubitatConfig(
 		"Post Oak",
 		"http://192.168.68.63",
 		"7",
 		"769f39e5-b7d6-4282-a3e5-3fb480c4f9f5"
 	),
+
+	// AI hub IP: 192.168.68.54
 	daniel: new HubitatConfig(
 		"Daniel",
 		"http://192.168.68.67",
