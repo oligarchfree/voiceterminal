@@ -3,12 +3,18 @@
 	"use strict";
 
 	const MAX_PLAYS = 5;
-	const DEFAULT_DURATION_MS = 5000; // 5 seconds default
+	const INITIAL_DEFAULT_MS = 5000; // 5 seconds initial default
 
+	let lastDurationMs = INITIAL_DEFAULT_MS;
 	let timerId = null;
 	let countdownId = null;
 	let alarmId = null;
 	let remainingMs = 0;
+
+	//------
+	function getDefaultDuration() {
+		return lastDurationMs;
+	}
 
 	//------
 	function updateCountdownDisplay() {
@@ -41,6 +47,9 @@
 	//------
 	function startTimer(numMilliseconds) {
 		console.log(`[TimerService] startTimer called with ${numMilliseconds}ms`);
+
+		// Update last duration for future defaults
+		lastDurationMs = numMilliseconds;
 		
 		// Clear any existing timer
 		if (timerId) clearTimeout(timerId);
@@ -92,7 +101,7 @@
 		startTimer,
 		stopTimer,
 		isPlayingTimeOutSound,
-		DEFAULT_DURATION_MS
+		getDefaultDuration
 	};
 
 	console.log("[TimerService] loaded");

@@ -6,16 +6,30 @@
 	function parseTimerDuration(stateParam) {
 		if (!stateParam) return null;
 
-		const match = stateParam.match(/^(\d+)\s*(seconds?|minutes?)?$/i);
-		if (!match) return null;
+		let totalMs = 0;
+		const pattern = /(\d+)\s*(seconds?|minutes?)/gi;
+		let match;
 
-		const value = parseInt(match[1], 10);
-		const unit = (match[2] || "seconds").toLowerCase();
+		while ((match = pattern.exec(stateParam)) !== null) {
+			const value = parseInt(match[1], 10);
+			const unit = match[2].toLowerCase();
 
-		if (unit.startsWith("minute")) {
-			return value * 60000;
+			if (unit.startsWith("minute")) {
+				totalMs += value * 60000;
+			} else {
+				totalMs += value * 1000;
+			}
 		}
-		return value * 1000;
+
+		// If no unit found, try parsing as plain number (assume seconds)
+		if (totalMs === 0) {
+			const plainNum = parseInt(stateParam, 10);
+			if (plainNum > 0) {
+				totalMs = plainNum * 1000;
+			}
+		}
+
+		return totalMs > 0 ? totalMs : null;
 	}
 
 	//------
@@ -24,7 +38,7 @@
 
 		if (target === "timer") {
 			if (state === "start") {
-				const ms = parseTimerDuration(stateParam) || window.TimerService?.DEFAULT_DURATION_MS || 60000;
+				const ms = parseTimerDuration(stateParam) || window.TimerService?.getDefaultDuration?.() || 60000;
 				window.TimerService?.startTimer(ms);
 				return { success: true };
 			}

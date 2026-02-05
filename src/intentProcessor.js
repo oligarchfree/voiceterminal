@@ -32,7 +32,10 @@
 		{ canonical: "8", aliases: ["eight"] },
 		{ canonical: "9", aliases: ["nine"] },
 		{ canonical: "10", aliases: ["ten"] },
-		
+
+		// services
+		{ canonical: "timer", aliases: ["time for","time"] },
+
 		// states
 		{ canonical: "off", aliases: ["cough"] },
 		{ canonical: "on", aliases: ["honor"] },
