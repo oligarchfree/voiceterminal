@@ -40,6 +40,7 @@
 		{ canonical: "off", aliases: ["cough"] },
 		{ canonical: "on", aliases: ["honor"] },
 		{ canonical: "test", aliases: ["task","taste","tastes"] },
+		{ canonical: "dim", aliases: ["dimm"] },
 
 		// light states
 		{ canonical: "setColorTemperature", aliases: ["set color temperature"] },
